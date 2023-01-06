@@ -204,3 +204,15 @@ const TodoApp = ({ title }) => {
 }
 export default TodoApp
 ```
+
+### High Order Component 
+Component => (Component) => Taqiresh => Component
+```
+import { Navigate } from "react-router-dom";
+
+export const PrivateComponents = (Component) => (props) => {
+    const token = localStorage.getItem("token");
+    return token ? (<Component />) : <div>hello</div>
+}
+export default PrivateComponents
+```

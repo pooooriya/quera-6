@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import './style.scss'
 import axios from 'axios'
 import { useForm } from "react-hook-form"
+import { Input } from './style'
 const TodoApp = ({ title }) => {
     const { register, handleSubmit, reset, formState: { isDirty, isValid, errors } } = useForm();
     // const [form, setForm] = useState({
@@ -60,8 +61,8 @@ const TodoApp = ({ title }) => {
             <ul className='todo_container'>
                 {todo?.length === 0 ? (
                     <h5>یادداشتی نوشته نشده است</h5>
-                ) : (todo?.map(item => (
-                    <li>
+                ) : (todo?.map((item) => (
+                    <li key={item.id}>
                         <span>
                             {item.title}
                         </span>
@@ -74,7 +75,7 @@ const TodoApp = ({ title }) => {
 
             </ul>
             <form className='todo_input' onSubmit={handleSubmit(handleFormSubmit)}>
-                <input {...register("todo", { required: true })} type="text" />
+                <Input {...register("todo", { required: true })} type="text" />
                 {/* {errors.todo && <span>این فیلد ضروری است</span>} */}
                 <input disabled={!isDirty && !isValid} type="submit" value="+" />
             </form>
