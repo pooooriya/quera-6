@@ -1,70 +1,206 @@
-# Getting Started with Create React App
+## Component Lifecycles In ReactJs
+ ### phase-1 Initialization
+ ```
+ #### مقادیر اولیه استیت را میگیرد
+ const [state,setstate]=useState(10)
+ #### ترتیب و اولویت هوک ها و استفاده درست از آن ها را چک میکند
+ useEffect() useState() useMemo() useCallback()
+ ```
+ ### phase-2 Mounting
+  ```
+  #### رندر شدن کامپوننت
+  ComponentWillMount() === UseEffect(()=>{},[])
+  ```
+### phase-3 Updating (ReRendering)
+```
+1.State Changes (Setter SetState)
+2.Parent ReRendering => React.Memo();
+```
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+### phase-4 unMount 
+```
+addEventListener() => RemoveEventListener()
+Intervall =>SetInterval(()=>{},1000)=>clearInterval();
+ComponentWillUnmount() => UseEffect(()=>{
+    // useEffect Codes 
+    // mounting
+    var id = SetInterval()
+    addEventListener()
+    return => {
+        clearInterval(id)
+        //unmounting
+        RemoveEventListener()
+    }
+},[])
+```
 
-## Available Scripts
+## ConditinalRendering
+```
+import { useEffect, useState } from "react";
 
-In the project directory, you can run:
+//conditionalRendering
+function App() {
+  const [isActive, SetIsActive] = useState(true);
 
-### `yarn start`
+  return isActive && (<div> ManActiveAm</div >)
+}
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+export default App;
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
 
-### `yarn test`
+# Forms
+### 1. Tredetional
+```
+import { useEffect, useState } from 'react'
+import './style.scss'
+import axios from 'axios'
+import { useForm } from "react-hook-form"
+const TodoApp = ({ title }) => {
+     const [form, setForm] = useState({
+         todo: ""
+     });
+    const [todo, setTodo] = useState();
+    const getAllTodos = () => {
+        axios.get("http://localhost:3000/todos")
+            .then(res => setTodo(res.data));
+    }
+    const handleRemoveTodo = (id) => {
+        axios.delete("http://localhost:3000/todos/" + id).then(() => {
+            // copy state ra begir
+            const copy = [...todo];
+            //taqiirrr bede copy ra
+            const newState = copy.filter(n => n.id !== id);
+            // setstate kun
+            setTodo(newState)
+        })
+    }
+     const handleInputOnChange = (e) => {
+          //1. setForm({ ...form, [e.target.name]: e.target.value })
+         setForm({ todo: e.target.value })
+     }
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+     const handleAddTodo = () => {
+         if (form.todo) {
+             axios.post("http://localhost:3000/todos/", {
+                 id: new Date().getTime(),
+                 title: form?.todo
+             }).then(res => {
+                 setTodo([...todo, res.data])
+                 setForm({ todo: "" })
+             })
+         }
+     }
 
-### `yarn build`
+    const handleFormSubmit = (data) => {
+        axios.post("http://localhost:3000/todos/", {
+            id: new Date().getTime(),
+            title: data.todo
+        }).then(res => {
+            setTodo([...todo, res.data])
+            //setForm({ todo: "" })
+            reset()
+        })
+    }
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+    useEffect(() => {
+        getAllTodos();
+    }, [])
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+    return (
+        <div className="todo">
+            <h2 className="todo_headline">{title}</h2>
+            <ul className='todo_container'>
+                {todo?.length === 0 ? (
+                    <h5>یادداشتی نوشته نشده است</h5>
+                ) : (todo?.map(item => (
+                    <li>
+                        <span>
+                            {item.title}
+                        </span>
+                        <span onClick={() => handleRemoveTodo(item.id)}>
+                            {"\u00D7"}
+                        </span>
+                    </li>
+                )))}
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### `yarn eject`
+            </ul>
+            <div className='todo_input'>
+                <input name="todo" type="text" onChange={handleInputOnChange} />
+                <input type="submit" value="+" onClick={handleAddTodo} />
+            </div>
+        </div>
+    )
+}
+export default TodoApp
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### 2. React Hook Form
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+import { useEffect, useState } from 'react'
+import './style.scss'
+import axios from 'axios'
+import { useForm } from "react-hook-form"
+const TodoApp = ({ title }) => {
+    const { register, handleSubmit, reset, formState: { isDirty, isValid ,errors} } = useForm();
+    const [todo, setTodo] = useState();
+    const getAllTodos = () => {
+        axios.get("http://localhost:3000/todos")
+            .then(res => setTodo(res.data));
+    }
+    const handleRemoveTodo = (id) => {
+        axios.delete("http://localhost:3000/todos/" + id).then(() => {
+            // copy state ra begir
+            const copy = [...todo];
+            //taqiirrr bede copy ra
+            const newState = copy.filter(n => n.id !== id);
+            // setstate kun
+            setTodo(newState)
+        })
+    }
+ 
+    const handleFormSubmit = (data) => {
+        axios.post("http://localhost:3000/todos/", {
+            id: new Date().getTime(),
+            title: data.todo
+        }).then(res => {
+            setTodo([...todo, res.data])
+            //setForm({ todo: "" })
+            reset()
+        })
+    }
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+    useEffect(() => {
+        getAllTodos();
+    }, [])
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+    return (
+        <div className="todo">
+            <h2 className="todo_headline">{title}</h2>
+            <ul className='todo_container'>
+                {todo?.length === 0 ? (
+                    <h5>یادداشتی نوشته نشده است</h5>
+                ) : (todo?.map(item => (
+                    <li>
+                        <span>
+                            {item.title}
+                        </span>
+                        <span onClick={() => handleRemoveTodo(item.id)}>
+                            {"\u00D7"}
+                        </span>
+                    </li>
+                )))}
+            </ul>
+            <form className='todo_input' onSubmit={handleSubmit(handleFormSubmit)}>
+                <input {...register("todo", { required: true })} type="text" />
+                {errors.todo && <span>این فیلد ضروری است</span>}
+                <input disabled={!isDirty && !isValid} type="submit" value="+" />
+            </form>
+        </div>
+    )
+}
+export default TodoApp
+```
